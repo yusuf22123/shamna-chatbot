@@ -6,7 +6,11 @@ import re
 app = Flask(__name__)
 
 # تحميل نموذج اللغة العربية من spaCy
-nlp = spacy.load("ar_core_news_sm")
+try:
+    nlp = spacy.load("ar_core_news_sm-3.5.0")
+except OSError as e:
+    print(f"Error loading model: {e}")
+    raise
 
 # قايمة المنيو
 menu = {
