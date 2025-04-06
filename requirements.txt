@@ -2,4 +2,4 @@ flask
 fuzzywuzzy
 python-Levenshtein
 gunicorn
-spacy
+spacy==3.7.2
