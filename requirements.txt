@@ -4,3 +4,10 @@ python-Levenshtein
 gunicorn==20.1.0
 spacy==3.5.0
 numpy==1.26.4
+flask
+fuzzywuzzy
+python-Levenshtein
+gunicorn==20.1.0
+spacy==3.5.0
+numpy==1.26.4
+https://github.com/explosion/spacy-models/releases/download/ar_core_news_sm-3.5.0/ar_core_news_sm-3.5.0.tar.gz
