@@ -1,4 +1,6 @@
 flask
 fuzzywuzzy
 python-Levenshtein
-gunicorn 
+gunicorn
+spacy
+https://github.com/explosion/spacy-models/releases/download/ar_core_news_sm-3.5.0/ar_core_news_sm-3.5.0.tar.gz
