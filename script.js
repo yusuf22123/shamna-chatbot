@@ -22,8 +22,9 @@ let order = {};
 // دالة لتنظيف النص وتوحيده
 function normalizeText(text) {
     text = text.toLowerCase();
-    text = text.replace("أ", "ا").replace("إ", "ا").replace("آ", "ا");
+    text = text.replace(/أ|إ|آ/g, "ا");
     text = text.replace("بيتزا", "بيتزا ").replace("وجبة", "وجبة ");
+    text = text.replace(/[^ء-ي0-9\s]/g, ""); // إزالة أي حروف أو رموز غريبة
     text = text.trim();
     return text;
 }
@@ -41,13 +42,13 @@ function findItemsInText(text) {
                 let extra = normalizedText.split("بدون")[1] || normalizedText.split("من غير")[1];
                 details[item] = `بدون ${extra.trim()}`;
             }
-        } else if (normalizedText.includes("شاورما") && normalizedText.includes("بيتزا") && item === "بيتزا شاورما") {
+        } else if (normalizedText.includes("شاورما") && item === "بيتزا شاورما") {
             items.push(item);
-        } else if (normalizedText.includes("مارجريتا") && normalizedText.includes("بيتزا") && item === "بيتزا مارجريتا") {
+        } else if (normalizedText.includes("مارجريتا") && item === "بيتزا مارجريتا") {
             items.push(item);
-        } else if (normalizedText.includes("فور سيزونز") && normalizedText.includes("بيتزا") && item === "بيتزا فور سيزونز") {
+        } else if (normalizedText.includes("فور سيزونز") && item === "بيتزا فور سيزونز") {
             items.push(item);
-        } else if (normalizedText.includes("بيبروني") && normalizedText.includes("بيتزا") && item === "بيتزا بيبروني") {
+        } else if (normalizedText.includes("بيبروني") && item === "بيتزا بيبروني") {
             items.push(item);
         }
     }
@@ -66,33 +67,58 @@ function displayMessage(message, sender) {
 
 // الرسالة الترحيبية
 window.onload = function() {
-    displayMessage("مرحبًا بيك في مطعم شامنا! 😊\nعايز تطلب أكل؟ اكتب 'طلب' أو 'عايز أطلب أكل'\nعايز تشوف المنيو؟ اكتب 'المنيو'", "bot");
+    displayMessage("مرحبًا بيك في مطعم شامنا! 😊\nاختار الأصناف من القايمة تحت، أو اكتب 'طلب' لو عايز تكتب بنفسك!", "bot");
 };
+
+// دالة لإضافة صنف من القايمة
+function addItem() {
+    const itemSelect = document.getElementById("item-select");
+    const selectedItem = itemSelect.value;
+    if (selectedItem && !selectedItems.includes(selectedItem)) {
+        selectedItems.push(selectedItem);
+        displayMessage(`تم إضافة: ${selectedItem}`, "user");
+        displayMessage(`اختارت ${selectedItems.join("، ")}. عايز تضيف حاجة تانية؟ لما تخلّص، اكتب 'تم' أو اضغط إرسال!`, "bot");
+    }
+    itemSelect.value = ""; // إعادة تعيين القايمة
+}
 
 // دالة لمعالجة الرسائل
 function sendMessage() {
     const userInput = document.getElementById("user-message");
     const userMessage = userInput.value.trim();
-    if (!userMessage) return;
+    if (!userMessage && selectedItems.length === 0) return;
 
-    displayMessage(userMessage, "user");
-    userInput.value = "";
+    if (userMessage) {
+        displayMessage(userMessage, "user");
+        userInput.value = "";
+    }
 
     const normalizedInput = normalizeText(userMessage);
 
     if (normalizedInput.includes("المنيو")) {
-        displayMessage("المنيو موجودة فوق! 📋 تقدر تشوفها وتكتب الأصناف اللي عايزها هنا.", "bot");
+        displayMessage("المنيو موجودة فوق! 📋 تقدر تشوفها وتختار الأصناف من القايمة تحت.", "bot");
         state = "waiting_for_items";
         return;
     }
 
     if (normalizedInput.includes("طلب") || normalizedInput.includes("عايز اطلب اكل") || normalizedInput.includes("اطلب ايه")) {
-        displayMessage("تمام! اكتب الأصناف اللي عايزها (مثلاً: شيش بالطين بدون بصل، بيتزا شاورما)", "bot");
+        displayMessage("تمام! اختار الأصناف من القايمة تحت، أو اكتب الأصناف بنفسك (مثلاً: شيش بالطين بدون بصل، بيتزا شاورما)", "bot");
         state = "waiting_for_items";
         return;
     }
 
     if (state === "waiting_for_items") {
+        if (normalizedInput === "تم" || !userMessage) {
+            if (selectedItems.length > 0) {
+                state = "waiting_for_quantities";
+                displayMessage(`تمام، عايز كام ${selectedItems.join("، ")}؟ (مثلاً: 1 شيش بالطين، 2 بيتزا شاورما)`, "bot");
+                return;
+            } else {
+                displayMessage("مفيش أصناف مختارة! اختار من القايمة أو اكتب الأصناف بنفسك.", "bot");
+                return;
+            }
+        }
+
         const { items, details } = findItemsInText(userMessage);
         if (items.length > 0) {
             selectedItems = items;
@@ -100,7 +126,7 @@ function sendMessage() {
             state = "waiting_for_quantities";
             displayMessage(`تمام، عايز كام ${items.join("، ")}؟ (مثلاً: 1 شيش بالطين، 2 بيتزا شاورما)`, "bot");
         } else {
-            displayMessage("مش فاهم طلبك، ممكن تكتب الأصناف اللي عايزها (زي شيش بالطين، بيتزا شاورما)؟", "bot");
+            displayMessage("مش فاهم طلبك، ممكن تكتب الأصناف اللي عايزها (زي شيش بالطين، بيتزا شاورما) أو تختار من القايمة تحت؟", "bot");
         }
         return;
     }
@@ -141,12 +167,12 @@ function sendMessage() {
 
     if (state === "waiting_for_confirmation") {
         if (normalizedInput.includes("أيوة")) {
-            displayMessage("تم تسجيل طلبك! هيوصلك خلال 30 دقيقة. شكرًا على طلبك! 😊\nعايز تطلب حاجة تانية؟ اكتب 'طلب'", "bot");
+            displayMessage("تم تسجيل طلبك! هيوصلك خلال 30 دقيقة. شكرًا على طلبك! 😊\nعايز تطلب حاجة تانية؟ اختار من القايمة أو اكتب 'طلب'", "bot");
             state = "waiting_for_items";
             selectedItems = [];
             order = {};
         } else if (normalizedInput.includes("لأ")) {
-            displayMessage("تمام، الطلب اتلغى. عايز تطلب حاجة تانية؟ اكتب 'طلب'", "bot");
+            displayMessage("تمام، الطلب اتلغى. عايز تطلب حاجة تانية؟ اختار من القايمة أو اكتب 'طلب'", "bot");
             state = "waiting_for_items";
             selectedItems = [];
             order = {};
@@ -156,7 +182,7 @@ function sendMessage() {
         return;
     }
 
-    displayMessage("مش فاهم طلبك، ممكن تكتب 'طلب' أو 'عايز أطلب أكل' عشان نبدأ؟\nعايز تشوف المنيو؟ اكتب 'المنيو'", "bot");
+    displayMessage("مش فاهم طلبك، ممكن تكتب 'طلب' أو تختار الأصناف من القايمة تحت؟", "bot");
 }
 
 document.getElementById("user-message").addEventListener("keypress", function(event) {
