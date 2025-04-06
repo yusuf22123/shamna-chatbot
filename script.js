@@ -36,20 +36,14 @@ function findItemsInText(text) {
     let details = {};
     for (let item in menu) {
         let normalizedItem = normalizeText(item);
-        if (normalizedText.includes(normalizedItem)) {
+        let itemWords = normalizedItem.split(" ");
+        let allWordsFound = itemWords.every(word => normalizedText.includes(word));
+        if (allWordsFound) {
             items.push(item);
             if (normalizedText.includes("بدون") || normalizedText.includes("من غير")) {
                 let extra = normalizedText.split("بدون")[1] || normalizedText.split("من غير")[1];
                 details[item] = `بدون ${extra.trim()}`;
             }
-        } else if (normalizedText.includes("شاورما") && item === "بيتزا شاورما") {
-            items.push(item);
-        } else if (normalizedText.includes("مارجريتا") && item === "بيتزا مارجريتا") {
-            items.push(item);
-        } else if (normalizedText.includes("فور سيزونز") && item === "بيتزا فور سيزونز") {
-            items.push(item);
-        } else if (normalizedText.includes("بيبروني") && item === "بيتزا بيبروني") {
-            items.push(item);
         }
     }
     return { items, details };
@@ -77,15 +71,16 @@ function addItem() {
     if (selectedItem && !selectedItems.includes(selectedItem)) {
         selectedItems.push(selectedItem);
         displayMessage(`تم إضافة: ${selectedItem}`, "user");
-        displayMessage(`اختارت ${selectedItems.join("، ")}. عايز تضيف حاجة تانية؟ لما تخلّص، اكتب 'تم' أو اضغط إرسال!`, "bot");
+        displayMessage(`اختارت ${selectedItems.join("، ")}. عايز تضيف حاجة تانية؟ اضغط إرسال لما تخلّص!`, "bot");
     }
-    itemSelect.value = ""; // إعادة تعيين القايمة
+    itemSelect.value = "";
 }
 
 // دالة لمعالجة الرسائل
 function sendMessage() {
     const userInput = document.getElementById("user-message");
     const userMessage = userInput.value.trim();
+
     if (!userMessage && selectedItems.length === 0) return;
 
     if (userMessage) {
@@ -108,15 +103,10 @@ function sendMessage() {
     }
 
     if (state === "waiting_for_items") {
-        if (normalizedInput === "تم" || !userMessage) {
-            if (selectedItems.length > 0) {
-                state = "waiting_for_quantities";
-                displayMessage(`تمام، عايز كام ${selectedItems.join("، ")}؟ (مثلاً: 1 شيش بالطين، 2 بيتزا شاورما)`, "bot");
-                return;
-            } else {
-                displayMessage("مفيش أصناف مختارة! اختار من القايمة أو اكتب الأصناف بنفسك.", "bot");
-                return;
-            }
+        if (selectedItems.length > 0 && (!userMessage || normalizedInput === "تم")) {
+            state = "waiting_for_quantities";
+            displayMessage(`تمام، عايز كام ${selectedItems.join("، ")}؟ اكتب الكميات (مثلاً: 1 لكل صنف، أو 1 شيش بالطين، 2 بيتزا شاورما)`, "bot");
+            return;
         }
 
         const { items, details } = findItemsInText(userMessage);
@@ -124,7 +114,7 @@ function sendMessage() {
             selectedItems = items;
             order.details = details;
             state = "waiting_for_quantities";
-            displayMessage(`تمام، عايز كام ${items.join("، ")}؟ (مثلاً: 1 شيش بالطين، 2 بيتزا شاورما)`, "bot");
+            displayMessage(`تمام، عايز كام ${items.join("، ")}؟ اكتب الكميات (مثلاً: 1 لكل صنف، أو 1 شيش بالطين، 2 بيتزا شاورما)`, "bot");
         } else {
             displayMessage("مش فاهم طلبك، ممكن تكتب الأصناف اللي عايزها (زي شيش بالطين، بيتزا شاورما) أو تختار من القايمة تحت؟", "bot");
         }
@@ -134,16 +124,40 @@ function sendMessage() {
     if (state === "waiting_for_quantities") {
         const quantities = {};
         const normalizedInput = normalizeText(userMessage);
-        for (let item of selectedItems) {
-            let found = false;
-            for (let word of normalizedInput.split(" ")) {
-                if (!isNaN(word)) {
-                    quantities[item] = parseInt(word);
-                    found = true;
-                    break;
+        const words = normalizedInput.split(" ");
+
+        // محاولة استخراج الكميات من النص
+        let currentQuantity = 1; // افتراضيًا 1 لو مفيش كمية
+        for (let i = 0; i < words.length; i++) {
+            if (!isNaN(words[i])) {
+                currentQuantity = parseInt(words[i]);
+                // ابحث عن الصنف في الكلمات التالية
+                let found = false;
+                for (let item of selectedItems) {
+                    let normalizedItem = normalizeText(item);
+                    let itemWords = normalizedItem.split(" ");
+                    let itemFound = itemWords.every(word => normalizedInput.includes(word));
+                    if (itemFound) {
+                        quantities[item] = currentQuantity;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    // لو مفيش صنف محدد، نضيف الكمية للصنف الحالي
+                    let index = Object.keys(quantities).length;
+                    if (index < selectedItems.length) {
+                        quantities[selectedItems[index]] = currentQuantity;
+                    }
                 }
             }
-            if (!found) quantities[item] = 1;
+        }
+
+        // لو مفيش كميات محددة، نعتبر الكمية 1 لكل صنف
+        for (let item of selectedItems) {
+            if (!quantities[item]) {
+                quantities[item] = 1;
+            }
         }
 
         let totalCost = 0;
