@@ -6,12 +6,7 @@ import re
 app = Flask(__name__)
 
 # تحميل نموذج اللغة العربية من spaCy
-try:
-    nlp = spacy.load("ar_core_news_sm")
-except OSError:
-    # لو النموذج مش موجود، هنحمّله تلقائيًا
-    spacy.cli.download("ar_core_news_sm")
-    nlp = spacy.load("ar_core_news_sm")
+nlp = spacy.load("ar_core_news_sm")
 
 # قايمة المنيو
 menu = {
