@@ -1,0 +1,4 @@
+flask
+fuzzywuzzy
+python-Levenshtein
+gunicorn 

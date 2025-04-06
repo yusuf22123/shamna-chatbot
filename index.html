@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مطعم شامنا - Chatbot</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- إضافة Font Awesome للأيقونات -->
+    <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
@@ -25,7 +24,6 @@
             <h2>تحدث مع البوت</h2>
             <div id="chat-container">
                 <div id="chat-box"></div>
-                <!-- إضافة قايمة اختيارات -->
                 <div id="options-container">
                     <select id="item-select">
                         <option value="">اختار صنف...</option>
@@ -45,7 +43,7 @@
                     <button onclick="addItem()">أضف الصنف</button>
                 </div>
                 <div id="user-input">
-                    <input type="text" id="user-message" placeholder="اكتب الكمية أو رد على البوت...">
+                    <input type="text" id="user-message" placeholder="اكتب طلبك هنا...">
                     <button onclick="sendMessage()">إرسال <i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
@@ -60,6 +58,6 @@
     <footer>
         <p>© 2025 مطعم شامنا - كل الحقوق محفوظة</p>
     </footer>
-    <script src="script.js"></script>
+    <script src="/static/script.js"></script>
 </body>
 </html>
