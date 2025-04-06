@@ -3,4 +3,4 @@ fuzzywuzzy
 python-Levenshtein
 gunicorn
 spacy
-https://github.com/explosion/spacy-models/releases/download/ar_core_news_sm-3.7.0/ar_core_news_sm-3.7.0.tar.gz
+ar-core-news-sm==3.7.0
