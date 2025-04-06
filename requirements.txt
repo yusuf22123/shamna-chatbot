@@ -3,3 +3,4 @@ fuzzywuzzy
 python-Levenshtein
 gunicorn==20.1.0
 spacy==3.5.0
+numpy==1.26.4
