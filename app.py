@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify
 import spacy
-import spacy.cli
 import re
 
 app = Flask(__name__)
