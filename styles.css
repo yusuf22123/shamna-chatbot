@@ -77,7 +77,6 @@ section {
     border-radius: 10px;
 }
 
-/* تخصيص الـ Scrollbar */
 #chat-box::-webkit-scrollbar {
     width: 8px;
 }
@@ -89,6 +88,23 @@ section {
 
 #chat-box::-webkit-scrollbar-track {
     background: #f1f1f1;
+}
+
+#options-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+#item-select {
+    flex-grow: 1;
+    padding: 12px;
+    border: 2px solid #ff6347;
+    border-radius: 25px;
+    font-size: 1em;
+    background-color: white;
+    cursor: pointer;
 }
 
 #user-input {
@@ -163,7 +179,6 @@ footer p {
     margin-left: 10px;
 }
 
-/* تحسين الأيقونات في التواصل */
 section a {
     color: #ff6347;
     text-decoration: none;
